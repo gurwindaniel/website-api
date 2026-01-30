@@ -8,7 +8,7 @@
 </head>
 
 <body>
-
-    <%- include('./navbar') %>
-
+    <% if (typeof user !== 'undefined' && user) { %>
+       <%- include('./navbar') %>
+       <%}%>
     <div class="container mt-4">

@@ -1,10 +1,41 @@
+
 const fastify=require('fastify')({logger:true});
 const path=require('path');
 const ejs=require('ejs');
 const fastifyView=require('@fastify/view');
 const fastifyStatic=require('@fastify/static');
 const pool=require('./db/pool');
-const bcrypt=require('bcryptjs')
+const bcrypt=require('bcryptjs');
+
+//Register JWT
+fastify.register(require('@fastify/cookie'))
+fastify.register(require('@fastify/jwt'), {
+    secret:process.env.SECRET || 'supersecret',
+    sign: {expiresIn: '1h'},
+    cookie:{
+        cookieName:'token',
+        signed:false
+    }
+});
+
+// Add authentication hook for protected routes
+// Add authentication hook for protected routes using preHandler
+fastify.addHook('preHandler', async (request, reply) => {
+    // Allow public routes without authentication
+    const publicRoutes = ['/', '/login'];
+    const url = request.raw.url.split('?')[0];
+    if (publicRoutes.includes(url)) return;
+
+    try {
+        await request.jwtVerify();
+    } catch (err) {
+        return reply.redirect('/');
+    }
+});
+
+
+
+
 // Register view engine
 fastify.register(fastifyView, {
     engine: { ejs: require('ejs') },
@@ -25,16 +56,60 @@ fastify.register(require('@fastify/multipart'), {
     }
 });
 
-//routes
+//Login Page
+fastify.get('/',async(req,reply)=>{
+    const roles=await pool.query('select roleid, rolename from roles');
+    try{
+         const error=req.query.error || null;
+    return reply.view('login.ejs',{roles : roles.rows,error,user:req.user});
+    }catch(err){
+        req.log.error(err);
+    }
+   
+});
 
+
+//login authentication
+fastify.post('/login', async (req, reply) => {
+    const { email, password, role_id } = req.body;
+    try {
+        // Get roles for dropdown (for error rendering)
+        const rolesResult = await pool.query('select roleid, rolename from roles');
+        const roles = rolesResult.rows;
+
+        // Find user by email
+        const result = await pool.query('select id, email, password, role_id from users where email=$1', [email]);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            const isMatch = await bcrypt.compare(password, user.password);
+            // Check password and role
+            if (isMatch && String(user.role_id) === String(role_id)) {
+                const token = fastify.jwt.sign({ id: user.id, email: user.email, roleid: user.role_id });
+                reply.setCookie('token', token, {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax',
+                });
+                return reply.redirect('/program');
+            } else {
+                return reply.view('login.ejs', { error: 'Invalid email, password, or role', roles });
+            }
+        } else {
+            return reply.view('login.ejs', { error: 'Invalid email, password, or role', roles });
+        }
+    } catch (err) {
+        req.log.error(err);
+        return reply.status(500).send({ error: 'Internal Server Error' });
+    }
+})
 
 // Show add program form and list of programs
-fastify.get('/', async (req, reply) => {
+fastify.get('/program', async (req, reply) => {
     const success = req.query.success === '1';
     let error = req.query.error || null;
     try {
         const result = await pool.query('SELECT id, title, description, encode(icon, \'base64\') as icon FROM programs ORDER BY created_at DESC');
-        return reply.view('addprogram.ejs', { success, error, programs: result.rows });
+        return reply.view('addprogram.ejs', { success, error, programs: result.rows,user:req.user });
     } catch (err) {
         req.log.error(err);
         return reply.view('addprogram.ejs', { success: false, error: 'Error fetching programs.', programs: [] });
@@ -142,7 +217,7 @@ fastify.post('/programs/add', async (req, reply) => {
         }
 
         if (!title || !description || !iconBuffer) {
-            return reply.view('addprogram.ejs', { success: false, error: 'Missing required fields or image.' });
+            return reply.view('addprogram.ejs', { success: false, error: 'Missing required fields or image.', user: req.user });
         }
 
         await pool.query(
@@ -168,10 +243,10 @@ fastify.get('/users',async(req,reply)=>{
     const roles=await pool.query('select roleid, rolename from roles');
     try{
             
-          return reply.view('users.ejs',{roles:roles.rows});
+          return reply.view('users.ejs',{roles:roles.rows,user:req.user});
     }catch(err){
         req.log.error(err);
-        return reply.view('users.ejs',{roles:[]});
+        return reply.view('users.ejs',{roles:[],user:req.user});
     }
   
 })
@@ -207,6 +282,11 @@ fastify.post('/user/add', {
     }
 })
 
+// Logout route
+fastify.get('/logout', async (req, reply) => {
+    reply.clearCookie('token');
+    return reply.redirect('/');
+});
 
 fastify.listen({port:3000},(err,address)=>{
     if(err){
