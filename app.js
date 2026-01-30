@@ -241,12 +241,18 @@ fastify.post('/programs/add', async (req, reply) => {
 // Load Users Page
 fastify.get('/users',async(req,reply)=>{
     const roles=await pool.query('select roleid, rolename from roles');
+    const users = await pool.query(`
+        SELECT users.id, users.email, roles.rolename
+        FROM users
+        JOIN roles ON users.role_id = roles.roleid
+        ORDER BY users.id
+    `);
     try{
             
-          return reply.view('users.ejs',{roles:roles.rows,user:req.user});
+          return reply.view('users.ejs',{roles:roles.rows,user:req.user,users: users.rows});
     }catch(err){
         req.log.error(err);
-        return reply.view('users.ejs',{roles:[],user:req.user});
+        return reply.view('users.ejs',{roles:[],user:req.user,users: []});
     }
   
 })
@@ -281,6 +287,7 @@ fastify.post('/user/add', {
          return reply.status(200).send({message:'Invalid data'});
     }
 })
+
 
 // Logout route
 fastify.get('/logout', async (req, reply) => {

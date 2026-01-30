@@ -9,7 +9,7 @@ modal.id='addUsers';
 const form =modal.querySelector('#addUserForm');
 form.setAttribute('action','/users/add');
 form.setAttribute('method','POST');
-const Btn=new Element('button',{type:'submit', id:'submitBtn', class:'btn btn-primary mt-3'});
+const Btn=new Element('button',{type:'submit', id:'submitBtn', class:'btn btn-dark mt-3'});
 const btn=Btn.createbtn('Add User');
 modalTitle.textContent='Add User';
 modal.style.display='flex';

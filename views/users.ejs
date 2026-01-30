@@ -1,5 +1,31 @@
 <%- include('./partials/header') %> 
-<button type="button" id="add_user" class="btn btn-primary">Add User</button>
+<button type="button" id="add_user" class="btn btn-dark">Add User</button>
 <%- include('./partials/modal') %>
 <script src="../public/addusers.js" type="module"></script>
+<div class="table-responsive mt-4">
+  <table class="table table-striped table-hover align-middle shadow-sm">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Email</th>
+        <th scope="col">Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (users && users.length > 0) { %>
+        <% users.forEach(function(u, idx) { %>
+          <tr>
+            <th scope="row"><%= idx + 1 %></th>
+            <td><%= u.email %></td>
+            <td><%= u.rolename %></td>
+          </tr>
+        <% }); %>
+      <% } else { %>
+        <tr>
+          <td colspan="3" class="text-center text-muted">No users found.</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
 <%- include('./partials/footer') %>
