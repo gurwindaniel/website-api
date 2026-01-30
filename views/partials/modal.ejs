@@ -1,0 +1,22 @@
+<!-- Modal Structure -->
+<div id="Modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+  <div style="background:#fff; padding:20px; border-radius:8px; min-width:300px; position:relative;">
+    <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;">&times;</span>
+    <h5 class="modal-title">Add User</h5>
+    <form id="addUserForm">
+      <!-- Empty form for now -->
+    <label for="emailid" class="form-label">Email</label>
+    <input type="text" id="emailid" name="email" class="form-control" required>
+      <label for="passwords" class="form-label">Password</label>
+    <input type="text" id="passwords" name="password" class="form-control" required>
+        <div class="mb-3">
+        <label for="role_name" class="form-label">Role ID</label>
+        <select name="rolename" id="role_name" class="form-select" required>
+            <% roles.forEach(function(role) { %>
+                <option value="<%= role.roleid %>"><%= role.rolename %></option>
+            <% }); %>
+        </select>
+        </div>
+    </form>
+  </div>
+</div>
