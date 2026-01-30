@@ -32,6 +32,8 @@
         <th>Title</th>
         <th>Icon</th>
         <th>Description</th>
+        <th>Created By</th>
+        <th>Approve Status</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -47,6 +49,28 @@
             <% } %>
           </td>
           <td><%= program.description %></td>
+          <td><%= program.creator_email || 'Unknown' %></td>
+          <td>
+            <% if (user && user.roleid == 1) { %>
+              <form action="/programs/<%= program.id %>/approve" method="POST" style="display:inline;">
+                <% if (program.approved) { %>
+                  <input type="hidden" name="approved" value="false">
+                  <button type="submit" class="btn btn-danger btn-sm">Disapprove</button>
+                  <span class="badge bg-success">Approved</span>
+                <% } else { %>
+                  <input type="hidden" name="approved" value="true">
+                  <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                  <span class="badge bg-secondary">Pending</span>
+                <% } %>
+              </form>
+            <% } else { %>
+              <% if (program.approved) { %>
+                <span class="badge bg-success">Approved</span>
+              <% } else { %>
+                <span class="badge bg-secondary">Pending</span>
+              <% } %>
+            <% } %>
+          </td>
           <td>
             <button type="button" class="btn btn-info btn-sm view-btn">View</button>
             <button type="button" class="btn btn-warning btn-sm edit-btn">Edit</button>

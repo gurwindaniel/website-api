@@ -3,8 +3,14 @@ CREATE TABLE programs (
     title VARCHAR(255) NOT NULL,
     icon BYTEA NOT NULL, -- store the image as binary data
     description TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    userid int references users(id),
+    approved BOOLEAN DEFAULT FALSE
 );
+
+-- ALTER TABLE programs
+-- ADD COLUMN userid INT REFERENCES users(id),
+-- ADD COLUMN approved BOOLEAN DEFAULT FALSE;
 
 create table roles(
     roleid serial primary key,
