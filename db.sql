@@ -23,3 +23,10 @@ create table users (
     password varchar(255) not null,
     role_id int references roles(roleid)
 );
+
+create table news (
+    id serial primary key,
+    content text not null,
+    user_id int references users(id),
+    created_at timestamp default current_timestamp
+);

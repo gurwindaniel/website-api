@@ -349,6 +349,12 @@ fastify.post('/user/add', {
     }
 })
 
+//add news 
+fastify.get('/news',async(req,reply)=>{ 
+ 
+    return reply.view('news.ejs',{user:req.user});
+
+ })
 
 // Logout route
 fastify.get('/logout', async (req, reply) => {
