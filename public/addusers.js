@@ -57,8 +57,52 @@ else if (res.status === 409 && data.message) {
 
 })
 
+
 closeModal.addEventListener('click', function(){
-    modal.style.display='none';
+        modal.style.display='none';
+});
+
+// Handle row click to show user details in modal
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('table.table');
+    if (table) {
+        table.addEventListener('click', function(e) {
+            const row = e.target.closest('tr');
+            if (!row || row.parentElement.tagName !== 'TBODY') return;
+            // Get values from row
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 2) return; // skip if not a user row
+            const email = cells[0].textContent.trim();
+            const rolename = cells[1].textContent.trim();
+
+            // Show modal and fill form
+            modal.id = 'viewUser';
+            modalTitle.textContent = 'User Details';
+            modal.style.display = 'flex';
+            const form = modal.querySelector('#addUserForm');
+            form.setAttribute('action', '#');
+            form.setAttribute('method', 'GET');
+            // Fill values
+            form.querySelector('#emailid').value = email;
+            form.querySelector('#passwords').value = '';
+            form.querySelector('#passwords').setAttribute('placeholder', 'Hidden');
+            // Set role select
+            const roleSelect = form.querySelector('#role_name');
+            for (let i = 0; i < roleSelect.options.length; i++) {
+                if (roleSelect.options[i].textContent.trim() === rolename) {
+                    roleSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            // Remove submit button if present
+            const submitBtn = form.querySelector('#submitBtn');
+            if (submitBtn) submitBtn.remove();
+            // Make fields readonly
+            form.querySelector('#emailid').setAttribute('readonly', true);
+            form.querySelector('#passwords').setAttribute('readonly', true);
+            roleSelect.setAttribute('disabled', true);
+        });
+    }
 });
 
 
